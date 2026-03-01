@@ -3,7 +3,7 @@ use clap::Parser;
 use sage_cli::{Cli, Command};
 use sage_context::{ShellContext, is_stdin_piped};
 use sage_core::{Config, ExitStatus};
-use std::io::{self, IsTerminal, Write};
+use std::io::{self, IsTerminal};
 
 #[tokio::main]
 async fn main() {
