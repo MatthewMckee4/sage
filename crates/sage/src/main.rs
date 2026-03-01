@@ -19,18 +19,28 @@ async fn run() -> Result<ExitStatus> {
         .init();
 
     let cli = Cli::parse();
-    let config = Config::from_env()?;
+    let config = Config::load()?;
     let context = ShellContext::detect();
 
     let prompt = if is_stdin_piped() {
         let mut input = String::new();
-        std::io::stdin().lines()
-            .try_for_each(|l| l.map(|line| { input.push_str(&line); input.push('\n'); }))?;
+        std::io::stdin().lines().try_for_each(|l| {
+            l.map(|line| {
+                input.push_str(&line);
+                input.push('\n');
+            })
+        })?;
         let question = cli.question_string();
         if question.is_empty() {
-            format!("Explain this output and suggest fixes if needed:\n\n```\n{input}```\n\nContext: {}", context.to_context_string())
+            format!(
+                "Explain this output and suggest fixes if needed:\n\n```\n{input}```\n\nContext: {}",
+                context.to_context_string()
+            )
         } else {
-            format!("{question}\n\n```\n{input}```\n\nContext: {}", context.to_context_string())
+            format!(
+                "{question}\n\n```\n{input}```\n\nContext: {}",
+                context.to_context_string()
+            )
         }
     } else {
         let q = cli.question_string();
