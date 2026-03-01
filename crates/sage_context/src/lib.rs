@@ -15,7 +15,7 @@ impl ShellContext {
             .unwrap_or_else(|_| "unknown".into());
 
         let shell = std::env::var("SHELL")
-            .map(|s| s.split('/').last().unwrap_or("unknown").to_string())
+            .map(|s| s.split('/').next_back().unwrap_or("unknown").to_string())
             .unwrap_or_else(|_| "unknown".into());
 
         let os = std::env::consts::OS.to_string();
