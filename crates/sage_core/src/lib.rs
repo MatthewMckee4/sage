@@ -9,8 +9,11 @@ pub struct Config {
 
 impl Config {
     pub fn from_env() -> anyhow::Result<Self> {
-        let api_key = std::env::var("ANTHROPIC_API_KEY")
-            .map_err(|_| anyhow::anyhow!("ANTHROPIC_API_KEY is not set. Get a key at https://console.anthropic.com"))?;
+        let api_key = std::env::var("ANTHROPIC_API_KEY").map_err(|_| {
+            anyhow::anyhow!(
+                "ANTHROPIC_API_KEY is not set. Get a key at https://console.anthropic.com"
+            )
+        })?;
         Ok(Self {
             api_key,
             model: std::env::var("SAGE_MODEL")
@@ -29,7 +32,10 @@ pub enum ExitStatus {
 
 impl From<ExitStatus> for i32 {
     fn from(s: ExitStatus) -> i32 {
-        match s { ExitStatus::Success => 0, ExitStatus::Failure => 1 }
+        match s {
+            ExitStatus::Success => 0,
+            ExitStatus::Failure => 1,
+        }
     }
 }
 
