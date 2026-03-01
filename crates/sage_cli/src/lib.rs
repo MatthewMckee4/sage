@@ -11,7 +11,11 @@ pub struct Cli {
     pub model: String,
 
     /// Anthropic API host
-    #[arg(long, env = "SAGE_API_HOST", default_value = "https://api.anthropic.com")]
+    #[arg(
+        long,
+        env = "SAGE_API_HOST",
+        default_value = "https://api.anthropic.com"
+    )]
     pub host: String,
 }
 
