@@ -1,22 +1,32 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code when working with code in this repository.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project Overview
 
 Sage is a local AI shell assistant written in Rust. Users run `sage <question>` or pipe
-output to it (`command | sage`). The LLM backend is **Claude API** (Anthropic) — not Ollama.
-The binary runs on the user's machine; it calls the Claude API with their own API key.
+output to it (`command | sage`). Calls Claude API (Anthropic) with the user's own API key.
+
+## Style
+
+Do not add too many comments. Only comment where necessary — if the code is complicated and cannot be simplified.
 
 ## Development Commands
 
 ```bash
+# Build and test
 cargo build
 cargo test
+
+# Format
 cargo fmt
+
+# Lint
 cargo clippy
+
+# Run CLI
 cargo run -p sage -- how do I find large files
-echo "error: file not found" | cargo run -p sage --
+echo "permission denied" | cargo run -p sage --
 ```
 
 ## Architecture
@@ -26,29 +36,41 @@ Flat crates/ workspace:
 | Crate | Responsibility |
 |---|---|
 | `crates/sage` | Binary entry point |
-| `crates/sage_cli` | clap CLI definitions |
-| `crates/sage_llm` | Claude API async client (streaming) |
+| `crates/sage_cli` | clap CLI definitions and arg parsing |
+| `crates/sage_llm` | Claude API async streaming client |
 | `crates/sage_core` | Shared types, config, errors |
-| `crates/sage_context` | Shell context detection (cwd, git, OS) |
+| `crates/sage_context` | Shell context detection (cwd, git, OS, shell) |
 
-## LLM Backend: Claude API
+### CLI Flow
 
-- Model: `claude-3-5-haiku-20241022` (fast, cheap, good for shell tasks)
+1. `main.rs` parses args with clap
+2. Detects if stdin is piped (isatty check)
+3. Builds context string from `sage_context`
+4. Calls Claude API via `sage_llm`, streams tokens to stdout
+5. Returns `ExitStatus` enum (Success=0, Failure=1)
+
+### Command Functions
+
+**Critical**: All functions MUST return `Result<ExitStatus>` from `anyhow`. Use `?` to propagate errors.
+
+### LLM Backend
+
+- **Claude API** (`https://api.anthropic.com/v1/messages`)
+- Model: `claude-3-5-haiku-20241022` (fast, cheap)
 - API key from `ANTHROPIC_API_KEY` env var
-- Endpoint: `https://api.anthropic.com/v1/messages`
-- Use streaming API (SSE) so tokens print as they arrive
-- If no API key: print helpful error "Set ANTHROPIC_API_KEY to use sage"
+- SSE streaming — print tokens as they arrive
+- If no API key: print `Error: set ANTHROPIC_API_KEY to use sage`
 
 ## Code Conventions
 
-- Edition 2024, MSRV 1.80
-- No unwrap() in library code — use anyhow::Result and ?
-- Use tracing not println! for debug output
-- Stream tokens to stdout as they arrive
-- Keep crates small and single-responsibility
+- **Edition 2024, MSRV 1.80**
+- **No `unwrap()`** in library code — use `anyhow::Result` and `?`
+- **No direct `print!`/`eprintln!`** — all output through a `Printer` abstraction
+- **Strict clippy pedantic**
+- All shared deps declared in `[workspace.dependencies]`
 
-## Style
+## PR Workflow
 
-- Minimal comments — clean code speaks for itself
-- Flat module structure
-- All errors via anyhow
+- All changes via pull requests — no direct commits to `main`
+- Squash merge only
+- Branch naming: `feat/`, `fix/`, `docs/`, `ci/`, `refactor/`

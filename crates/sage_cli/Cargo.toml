@@ -1,0 +1,11 @@
+[package]
+name = "sage_cli"
+version = "0.1.0"
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+sage_core.workspace = true
+anyhow.workspace = true
+clap.workspace = true

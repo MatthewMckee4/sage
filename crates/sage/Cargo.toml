@@ -1,0 +1,21 @@
+[package]
+name = "sage"
+version = "0.1.0"
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "sage"
+path = "src/main.rs"
+
+[dependencies]
+sage_cli.workspace = true
+sage_core.workspace = true
+sage_llm.workspace = true
+sage_context.workspace = true
+anyhow.workspace = true
+tokio.workspace = true
+clap.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
