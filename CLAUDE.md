@@ -1,76 +1,49 @@
-# CLAUDE.md
-
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+- ALWAYS read CONTRIBUTING.md for guidelines on how to run tools
+- ALWAYS attempt to add a test case for changed behavior. Get your tests to pass — if you didn't run the tests, your code does not work.
+- PREFER integration tests over unit tests where possible
+- ALWAYS run `cargo test` to run all tests
+- ALWAYS run `uvx prek run -a` at the end of a task
+- FOLLOW existing code style. Check neighboring files for patterns.
+- AVOID writing significant amounts of new code. Look for existing methods and utilities first.
+- AVOID using `panic!`, `unreachable!`, `.unwrap()`, unsafe code, and clippy rule ignores. Encode constraints in the type system instead.
+- PREFER patterns like `if let` to handle fallibility
+- PREFER `#[expect()]` over `#[allow()]` if clippy must be disabled
+- PREFER let chains (`if let` combined with `&&`) over nested `if let` statements
+- PREFER short imports over fully-qualified paths for readability
+- AVOID redundant comments and section separators in test files. Use comments to explain invariants and why something unusual was done, not to narrate code.
+- AVOID useless inline comments in tests. The code should speak for itself.
+- PREFER function comments over inline comments
 
 ## Project Overview
 
 Sage is a local AI shell assistant written in Rust. Users run `sage <question>` or pipe
-output to it (`command | sage`). Calls Claude API (Anthropic) with the user's own API key.
-
-## Style
-
-Do not add too many comments. Only comment where necessary — if the code is complicated and cannot be simplified.
+output to it (`command | sage`). Uses Claude API (Anthropic) as the LLM backend.
 
 ## Development Commands
 
 ```bash
-# Build and test
 cargo build
 cargo test
-
-# Format
 cargo fmt
-
-# Lint
-cargo clippy
-
-# Run CLI
+cargo clippy --all-targets --all-features -- -D warnings
 cargo run -p sage -- how do I find large files
 echo "permission denied" | cargo run -p sage --
 ```
 
 ## Architecture
 
-Flat crates/ workspace:
+Flat `crates/` workspace:
 
 | Crate | Responsibility |
 |---|---|
 | `crates/sage` | Binary entry point |
-| `crates/sage_cli` | clap CLI definitions and arg parsing |
-| `crates/sage_llm` | Claude API async streaming client |
+| `crates/sage_cli` | clap CLI definitions |
+| `crates/sage_llm` | Claude API streaming client |
 | `crates/sage_core` | Shared types, config, errors |
-| `crates/sage_context` | Shell context detection (cwd, git, OS, shell) |
+| `crates/sage_context` | Shell context detection |
 
-### CLI Flow
+## LLM Backend
 
-1. `main.rs` parses args with clap
-2. Detects if stdin is piped (isatty check)
-3. Builds context string from `sage_context`
-4. Calls Claude API via `sage_llm`, streams tokens to stdout
-5. Returns `ExitStatus` enum (Success=0, Failure=1)
-
-### Command Functions
-
-**Critical**: All functions MUST return `Result<ExitStatus>` from `anyhow`. Use `?` to propagate errors.
-
-### LLM Backend
-
-- **Claude API** (`https://api.anthropic.com/v1/messages`)
-- Model: `claude-3-5-haiku-20241022` (fast, cheap)
-- API key from `ANTHROPIC_API_KEY` env var
-- SSE streaming — print tokens as they arrive
-- If no API key: print `Error: set ANTHROPIC_API_KEY to use sage`
-
-## Code Conventions
-
-- **Edition 2024, MSRV 1.80**
-- **No `unwrap()`** in library code — use `anyhow::Result` and `?`
-- **No direct `print!`/`eprintln!`** — all output through a `Printer` abstraction
-- **Strict clippy pedantic**
-- All shared deps declared in `[workspace.dependencies]`
-
-## PR Workflow
-
-- All changes via pull requests — no direct commits to `main`
-- Squash merge only
-- Branch naming: `feat/`, `fix/`, `docs/`, `ci/`, `refactor/`
+- Model: `claude-3-5-haiku-20241022` by default
+- API key from `ANTHROPIC_API_KEY` env var or `~/.config/sage/config.toml`
+- Streaming SSE responses
