@@ -15,7 +15,7 @@ impl ShellContext {
             .unwrap_or_else(|_| "unknown".into());
 
         let shell = std::env::var("SHELL")
-            .map(|s| s.split('/').last().unwrap_or("unknown").to_string())
+            .map(|s| s.split('/').next_back().unwrap_or("unknown").to_string())
             .unwrap_or_else(|_| "unknown".into());
 
         let os = std::env::consts::OS.to_string();
@@ -28,7 +28,12 @@ impl ShellContext {
             .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
             .filter(|s| !s.is_empty());
 
-        Self { cwd, shell, os, git_branch }
+        Self {
+            cwd,
+            shell,
+            os,
+            git_branch,
+        }
     }
 
     pub fn to_context_string(&self) -> String {
