@@ -79,11 +79,11 @@ pub async fn ask(config: &Config, prompt: &str) -> Result<()> {
                 if data == "[DONE]" {
                     break;
                 }
-                if let Ok(json) = serde_json::from_str::<serde_json::Value>(data) {
-                    if let Some(delta) = json.pointer("/delta/text").and_then(|v| v.as_str()) {
-                        out.write_all(delta.as_bytes())?;
-                        out.flush()?;
-                    }
+                if let Ok(json) = serde_json::from_str::<serde_json::Value>(data)
+                    && let Some(delta) = json.pointer("/delta/text").and_then(|v| v.as_str())
+                {
+                    out.write_all(delta.as_bytes())?;
+                    out.flush()?;
                 }
             }
         }
