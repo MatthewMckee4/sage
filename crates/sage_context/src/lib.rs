@@ -28,7 +28,12 @@ impl ShellContext {
             .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
             .filter(|s| !s.is_empty());
 
-        Self { cwd, shell, os, git_branch }
+        Self {
+            cwd,
+            shell,
+            os,
+            git_branch,
+        }
     }
 
     pub fn to_context_string(&self) -> String {
