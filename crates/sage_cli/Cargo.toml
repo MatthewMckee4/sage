@@ -6,6 +6,6 @@ authors.workspace = true
 license.workspace = true
 
 [dependencies]
-sage_core.workspace = true
 anyhow.workspace = true
 clap.workspace = true
+sage_core.workspace = true
