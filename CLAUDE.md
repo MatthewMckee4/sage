@@ -5,8 +5,8 @@ This file provides guidance to Claude Code when working with code in this reposi
 ## Project Overview
 
 Sage is a local AI shell assistant written in Rust. Users run `sage <question>` or pipe
-output to it (`command | sage`) and get instant, context-aware answers powered by a
-local Ollama LLM. No cloud. No API keys. Zero config to get started.
+output to it (`command | sage`). The LLM backend is **Claude API** (Anthropic) — not Ollama.
+The binary runs on the user's machine; it calls the Claude API with their own API key.
 
 ## Development Commands
 
@@ -21,27 +21,34 @@ echo "error: file not found" | cargo run -p sage --
 
 ## Architecture
 
-Flat crates/ workspace (seal-style):
+Flat crates/ workspace:
 
 | Crate | Responsibility |
 |---|---|
-| `crates/sage` | Binary entry point, wires everything together |
-| `crates/sage_cli` | clap CLI definitions and argument parsing |
-| `crates/sage_llm` | Ollama async REST client, streaming responses |
-| `crates/sage_core` | Shared types, errors, config |
-| `crates/sage_context` | Shell context detection (cwd, git, OS, exit code) |
+| `crates/sage` | Binary entry point |
+| `crates/sage_cli` | clap CLI definitions |
+| `crates/sage_llm` | Claude API async client (streaming) |
+| `crates/sage_core` | Shared types, config, errors |
+| `crates/sage_context` | Shell context detection (cwd, git, OS) |
+
+## LLM Backend: Claude API
+
+- Model: `claude-3-5-haiku-20241022` (fast, cheap, good for shell tasks)
+- API key from `ANTHROPIC_API_KEY` env var
+- Endpoint: `https://api.anthropic.com/v1/messages`
+- Use streaming API (SSE) so tokens print as they arrive
+- If no API key: print helpful error "Set ANTHROPIC_API_KEY to use sage"
 
 ## Code Conventions
 
 - Edition 2024, MSRV 1.80
 - No unwrap() in library code — use anyhow::Result and ?
 - Use tracing not println! for debug output
-- Streaming LLM output: print tokens as they arrive, don't buffer
+- Stream tokens to stdout as they arrive
 - Keep crates small and single-responsibility
-- Follow seal's style: minimal comments, clean code speaks for itself
 
 ## Style
 
-- Do not add excessive comments
-- Prefer flat module structure
-- All errors propagate via anyhow
+- Minimal comments — clean code speaks for itself
+- Flat module structure
+- All errors via anyhow
